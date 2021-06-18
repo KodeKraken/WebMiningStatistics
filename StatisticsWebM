@@ -1,0 +1,267 @@
+
+from dearpygui.core import *
+from dearpygui.simple import *
+import time
+from selenium import webdriver
+import matplotlib.pyplot as plt
+
+
+
+def getData(sender,data):
+       
+    y=get_value(sender)
+    DataGeti(y)    
+    with window("Statistica", x_pos = 810, y_pos = 110, width = 450, height = 600):
+      for xi in KOMANDA:
+          add_text(xi) 
+    Ab=(combo(y))
+
+def DataGeti(y):
+    if int(y)==0:
+        y=11
+        browser.get("https://stats.topsport.lt/#/lt/statistics/competition/749/267499/overview")
+    elif int(y)==1:
+        y=31
+        browser.get("https://stats.topsport.lt/#/lt/statistics/competition/756/273948/overview")
+    elif int(y)==2:
+        y=19
+        browser.get("https://stats.topsport.lt/#/lt/statistics/competition/686/267447/overview")
+    elif int(y)==3:
+        y=17
+        browser.get("https://stats.topsport.lt/#/lt/statistics/competition/807/267611/overview")
+    else:
+        y=19
+        browser.get("https://stats.topsport.lt/#/lt/statistics/competition/716/269759/overview")
+            
+    time.sleep(3)
+    show = 0
+    global HERBAS
+    HERBAS = y
+    x=1
+  
+    while x<y:
+        show = browser.find_element_by_xpath('/html/body/div/div[1]/div[2]/div/div[5]/div[1]/div/div/div/div[3]/div/div[2]/league-table/div[2]/div/table/tbody/tr['+str(x)+']').text
+        x=x+1
+        KOMANDA.append(show)
+        print(show)
+        #f = open("Data.txt", "a")
+        #f.write(show)
+        #f.close()
+        A= []
+        A=(show.split())
+        ID.append(A[0])
+        if len(A) == 11:
+            ID.append(A[1])
+            
+        elif len(A)==12:
+            ID.append(A[1])
+            ID.append(A[2])
+        elif len(A)==13:
+            ID.append(A[1])
+            ID.append(A[2])
+            ID.append(A[3])
+        else:
+            ID.append(A[1])
+            ID.append(A[2])
+            ID.append(A[3])
+            ID.append(A[4])
+
+def combo(y):            
+    with window("Team select", x_pos = 10, y_pos = 110,height = 100, width = 400):
+        Ab=Numeracija(y)
+        add_text("Choose your team")
+        add_combo(name = "Teams", items = Ab, callback=combo2)   
+        time.sleep(5)
+
+
+def combo2(sender, data):            
+    with window("Choose oponent team", x_pos = 10, y_pos = 210,height = 100, width = 400):
+        Ab=Numeracija(HERBAS)
+        global J_kom
+        J_kom=get_value(sender).split()
+        J_kom=J_kom[0]
+        print(J_kom)
+        add_text("Choose your oponent team")
+        add_combo(name = "Team", items = Ab, callback=Statis_Skai)
+
+def Statis_Skai(sender, data):
+    global J_kom
+    P_kom=get_value(sender).split()
+    P_kom=P_kom[0]
+    if J_kom == P_kom:
+        with window("Same team", x_pos = 210, y_pos = 210,height = 300, width = 600):
+            i=0
+            while i<20:
+                add_text("¯\_(^^/)_/¯ 50/50 YOU CHOSE THE SAME TEAMS 50/50 ¯\_(^^/)_/¯")
+                i=i+1
+    tikim=stat(int(J_kom), int(P_kom))
+    with window("Statistics calculation", x_pos = 10, y_pos = 310,height = 300, width = 400):
+        add_text("Rezults:")
+        add_text("Your teams chance of winning: "+ str(tikim)+" %")
+        add_text(" ")
+        add_text("Previus matches against each other:")
+        add_text("Maches played: " + str(pirmoji+antroji)+" games ")
+        Ab=Numeracija(HERBAS)
+        add_text(Ab[int(J_kom)] + " Won: " + str(pirmoji))
+        add_text(Ab[int(P_kom)] + " Won: " + str(antroji))
+        add_text(" ")
+        add_text(" ")
+        add_text("Generate graphical representation:")
+        add_button(name="Generate", callback=Atvaizduoti)
+
+def Atvaizduoti(sender, data):
+    with window("Graphical view", x_pos = 410, y_pos = 110,height = 400, width = 400):
+        add_image("Picture", "Diagrama.png")
+    
+def Numeracija(y):
+        s = " "
+        Ab = []   
+        Vardai = []
+        for x in ID:
+         
+            
+
+            if x.isdigit():
+                if int(x)==1:
+                    Vardai.append(x)
+                else:
+                    Ak.append(Vardai)
+                    Vardai = []
+                    Vardai.append(x)
+                
+            else:
+                Vardai.append(x)
+
+        Ak.append(Vardai)
+        
+        i=0
+        
+        for x in Ak:
+            if x[0]==1:
+                Ab = [' '.join(Ak[0])]
+            elif x[0]==y-1:
+                Ab.append(' '.join(Ak[i]))
+            else:
+                Ab.append(' '.join(Ak[i]))
+                i=i+1
+                #print(Ab)
+        return Ab
+"""
+def win(sender,data):
+    with window("Komandos pasirinkim", x_pos = 310, y_pos = 300,height = 140, width = 300):
+        add_text("lol")
+"""
+def Diagrama(x,y):
+
+    print(y)
+
+    size_of_groups=[x,y]
+
+    plt.pie(size_of_groups)
+    my_circle=plt.Circle( (0,0), 0.7, color='White')
+    p=plt.gcf()
+    #plt.ylabel(x)
+    y=round(float(100-x),2)
+    plt.text(.975, .25, x)
+    #plt.text(1.175, .25, '%')
+    plt.text(.975, -.25, y)
+    #plt.text(1.175, -.25, '%')
+    plt.xlabel('Your team is blue (%)')
+    p.gca().add_artist(my_circle)
+    plt.savefig('Diagrama.png')
+    plt.show()
+        
+def stat(x,y):
+    #print(KOMANDA[x-1].split())
+    Info = KOMANDA[x-1].split()
+    #print(KOMANDA[y-1].split())
+    Pries = KOMANDA[y-1].split()
+    if len(Info) == 11:
+        winK = float(int(Info[3]) / int(Info[2]) * 100)
+    elif len(Info)==12:
+        winK = float(int(Info[4]) / int(Info[3]) * 100)
+    elif len(Info)==13:
+        winK = float(int(Info[5]) / int(Info[4]) * 100)
+    else:
+        winK = float(int(Info[6]) / int(Info[5]) * 100)
+    if len(Pries) == 11:
+        winP = float(int(Pries[3]) / int(Pries[2]) * 100)
+    elif len(Pries) == 12:
+        winP = float(int(Pries[4]) / int(Pries[3]) * 100)
+    elif len(Pries) == 13:
+        winP = float(int(Pries[5]) / int(Pries[4]) * 100)
+    else:
+        winP = float(int(Pries[6]) / int(Pries[5]) * 100)
+
+    
+    browser.find_element_by_xpath('/html/body/div/div[1]/div[2]/div/div[5]/div[1]/div/div/div/div[3]/div/div[1]/div/div/span[2]').click()
+    time.sleep(2)
+    namuose=browser.find_element_by_xpath('/html/body/div[1]/div[1]/div[2]/div/div[5]/div[1]/div/div/div/div[3]/div/div[2]/result-matrix/div/div[1]/table/tbody/tr['+str(x)+']/td['+str(y+2)+']').text
+    print(namuose)
+    sveciuose=browser.find_element_by_xpath('/html/body/div[1]/div[1]/div[2]/div/div[5]/div[1]/div/div/div/div[3]/div/div[2]/result-matrix/div/div[1]/table/tbody/tr['+str(y)+']/td['+str(x+2)+']').text
+    print(sveciuose)
+    n=namuose.split()
+    s=sveciuose.split()
+    global pirmoji
+    global antroji
+    pirmoji=0
+    antroji=0
+    if int(n[0])<6&int(s[2])<6:    
+        pirmoji=int(n[0])+int(s[2])
+        antroji=int(n[2])+int(s[0])
+    else:
+        if int(n[0])<6:
+            pirmoji=int(n[0])
+            antroji=int(n[2])
+        else:
+            if int(n[0])>int(n[2]):
+                pirmoji=pirmoji+1
+            else:
+                antroji=antroji+1
+        if int(s[0])<6:
+            pirmoji=pirmoji+int(s[2])
+            antroji=antroji+int(s[0])
+        else:
+            if int(s[0])>int(s[2]):
+                antroji=antroji+1
+            else:
+                pirmoji=pirmoji+1
+    print("Pirmosios komandos pergalės: "+str(pirmoji))
+    print("Antosios komandos pergalės: "+str(antroji))    
+    print((int(pirmoji)/(int(pirmoji)+int(antroji)))*100)
+    print((winK * 100 / (winK + winP )))
+    perc = round(float((winK * 100 / (winK + winP )*0.5)+((int(pirmoji)/(int(pirmoji)+int(antroji)))*50)),2)
+    anti = round(float(100-perc),2)
+    Diagrama(perc, anti)
+    print("Jusu komandos pergales tikimybe yra "+str(perc)+"%")
+    return perc
+
+def lyga(sender,data):
+    with window("Example Window", x_pos = 300):
+        add_text("Hello world")
+        #add_button("Start", callback = save_callback)
+        #core.add_input_text("string")
+        
+        #simple.set_window_pos(0,0)
+        item_list = [1, 2, 2, 5]
+        #core.add_slider_float("float")
+        add_listbox(name = "Komandos", items = item_list, num_items = 4 )
+        
+with window("Main Window"):
+    #set_main_window_size(1000,1000)
+    set_global_font_scale(1.25)
+    set_theme("Gold")
+    add_text("Select sports league.")
+    set_global_font_scale(1.25)
+    set_theme("Gold")
+    Komandos = ["LKL", "Eurolygue", "NBA", "TBSL", "BBL"]
+    add_listbox (name = "Lygos", items = Komandos, num_items = 4, callback=getData)
+    
+browser = webdriver.Firefox()
+time.sleep(1.5)
+ID=[]
+KOMANDA=[]
+Ak=[]
+i=0
+start_dearpygui(primary_window="Main Window")
+browser.close()
